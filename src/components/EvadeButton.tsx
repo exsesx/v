@@ -19,7 +19,9 @@ export function EvadeButton({ onGiveUp }: EvadeButtonProps) {
   const [tapCount, setTapCount] = useState(0);
   const [isHidden, setIsHidden] = useState(false);
 
-  const handleMobileTap = useCallback(() => {
+  const handleMobileTap = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+
     const nextTap = tapCount + 1;
     setTapCount(nextTap);
 
@@ -43,12 +45,15 @@ export function EvadeButton({ onGiveUp }: EvadeButtonProps) {
 
     return (
       <button
-        onPointerUp={!isHidden ? handleMobileTap : undefined}
+        onTouchStart={!isHidden ? handleMobileTap : undefined}
         className="font-heading tracking-[0.2em] uppercase"
         style={{
           ...buttonStyle,
-          touchAction: "manipulation",
+          touchAction: "none",
           WebkitTapHighlightColor: "transparent",
+          WebkitTouchCallout: "none",
+          WebkitUserSelect: "none",
+          userSelect: "none",
           opacity: isHidden ? 0 : tapCount >= MOBILE_PHRASES.length - 1 ? 0.3 : 0.7,
           pointerEvents: isHidden ? "none" : "auto",
         }}

@@ -15,6 +15,10 @@ export function ValentineCard() {
   const handleYes = useCallback(() => {
     setState("celebration");
   }, []);
+  const handleYesTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    handleYes();
+  }, [handleYes]);
 
   if (state === "celebration") {
     return <Celebration />;
@@ -135,7 +139,7 @@ export function ValentineCard() {
         >
           {isTouch ? (
             <button
-              onPointerUp={handleYes}
+              onTouchStart={handleYesTouchStart}
               className="relative cursor-pointer font-heading tracking-[0.2em] uppercase"
               style={{
                 padding: "18px 56px",
@@ -144,8 +148,11 @@ export function ValentineCard() {
                 background: "#f4f1e8",
                 border: "none",
                 letterSpacing: "0.2em",
-                touchAction: "manipulation",
+                touchAction: "none",
                 WebkitTapHighlightColor: "transparent",
+                WebkitTouchCallout: "none",
+                WebkitUserSelect: "none",
+                userSelect: "none",
               }}
             >
               Yes

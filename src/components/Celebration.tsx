@@ -103,6 +103,10 @@ export function Celebration() {
   const handleFireMore = useCallback(() => {
     fireConfetti();
   }, []);
+  const handleFireMoreTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    handleFireMore();
+  }, [handleFireMore]);
 
   return (
     <motion.div
@@ -232,7 +236,7 @@ export function Celebration() {
         {/* More confetti button */}
         {isTouch ? (
           <button
-            onPointerUp={handleFireMore}
+            onTouchStart={handleFireMoreTouchStart}
             className="cursor-pointer font-heading tracking-[0.2em] uppercase"
             style={{
               padding: "18px 56px",
@@ -240,8 +244,11 @@ export function Celebration() {
               color: "#0a0a0a",
               background: "#f4f1e8",
               border: "none",
-              touchAction: "manipulation",
+              touchAction: "none",
               WebkitTapHighlightColor: "transparent",
+              WebkitTouchCallout: "none",
+              WebkitUserSelect: "none",
+              userSelect: "none",
             }}
           >
             Celebrate
