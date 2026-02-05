@@ -16,19 +16,14 @@ export function ValentineCard() {
     setState("celebration");
   }, []);
 
-  const handleYesTouch = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    setState("celebration");
-  }, []);
-
   if (state === "celebration") {
     return <Celebration />;
   }
 
   return (
     <div
-      className="weave-overlay relative flex h-screen w-screen items-center justify-center overflow-hidden"
-      style={{ background: "#0a0a0a" }}
+      className="weave-overlay relative flex w-screen items-center justify-center overflow-hidden"
+      style={{ background: "#0a0a0a", minHeight: "100dvh" }}
     >
       <FloatingPetals count={18} />
 
@@ -140,7 +135,7 @@ export function ValentineCard() {
         >
           {isTouch ? (
             <button
-              onTouchEnd={handleYesTouch}
+              onPointerUp={handleYes}
               className="relative cursor-pointer font-heading tracking-[0.2em] uppercase"
               style={{
                 padding: "18px 56px",
