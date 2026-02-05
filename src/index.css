@@ -208,6 +208,28 @@ body {
   animation: sparkle 4s ease-in-out infinite;
 }
 
+@keyframes riseHeart {
+  0% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.15;
+  }
+  80% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: translateY(-20vh);
+    opacity: 0;
+  }
+}
+
+.animate-rise-heart {
+  animation: riseHeart ease-out infinite;
+  animation-fill-mode: backwards;
+}
+
 /* Knit/weave texture overlay */
 .weave-overlay::before {
   content: "";
@@ -231,6 +253,8 @@ body {
     );
   pointer-events: none;
   z-index: 1;
+  contain: strict;
+  will-change: auto;
 }
 
 /* Ornamental frame borders */

@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useIsTouchDevice } from "../hooks/useIsTouchDevice";
+import { useFastTap } from "../hooks/useFastTap";
 import { EvadeButtonDesktop } from "./EvadeButtonDesktop";
 
 const MOBILE_PHRASES = [
@@ -19,17 +20,19 @@ export function EvadeButton({ onGiveUp }: EvadeButtonProps) {
   const [tapCount, setTapCount] = useState(0);
   const [isHidden, setIsHidden] = useState(false);
 
-  const handleMobileTap = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
+  const handleMobileTap = useCallback(() => {
+    setTapCount((prevTap) => {
+      const nextTap = prevTap + 1;
 
-    const nextTap = tapCount + 1;
-    setTapCount(nextTap);
+      if (nextTap >= MOBILE_PHRASES.length) {
+        setIsHidden(true);
+        onGiveUp?.();
+      }
 
-    if (nextTap >= MOBILE_PHRASES.length) {
-      setIsHidden(true);
-      onGiveUp?.();
-    }
-  }, [tapCount, onGiveUp]);
+      return nextTap;
+    });
+  }, [onGiveUp]);
+  const { onTouchStart, onClick } = useFastTap(handleMobileTap);
 
   const buttonStyle = {
     padding: "18px 56px",
@@ -45,11 +48,12 @@ export function EvadeButton({ onGiveUp }: EvadeButtonProps) {
 
     return (
       <button
-        onTouchStart={!isHidden ? handleMobileTap : undefined}
+        onTouchStart={!isHidden ? onTouchStart : undefined}
+        onClick={!isHidden ? onClick : undefined}
         className="font-heading tracking-[0.2em] uppercase"
         style={{
           ...buttonStyle,
-          touchAction: "none",
+          touchAction: "manipulation",
           WebkitTapHighlightColor: "transparent",
           WebkitTouchCallout: "none",
           WebkitUserSelect: "none",

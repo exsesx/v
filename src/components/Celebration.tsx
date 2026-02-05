@@ -3,67 +3,78 @@ import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useIsTouchDevice } from "../hooks/useIsTouchDevice";
+import { useFastTap } from "../hooks/useFastTap";
 
 const MONO_COLORS = ["#f4f1e8", "#e8e0d5", "#d4c5b2", "#8b7355", "#4a4a4a", "#1a1a1a"];
 
 let confettiRunning = false;
+let cachedHeartShape: ReturnType<typeof confetti.shapeFromPath> | null = null;
+
+function getHeartShape() {
+  if (!cachedHeartShape) {
+    cachedHeartShape = confetti.shapeFromPath({
+      path: "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z",
+    });
+  }
+
+  return cachedHeartShape;
+}
 
 function fireConfetti() {
   if (confettiRunning) return;
 
   confettiRunning = true;
-  const duration = 4000;
-  const end = Date.now() + duration;
+  requestAnimationFrame(() => {
+    const duration = 4000;
+    const end = Date.now() + duration;
+    const heartShape = getHeartShape();
 
-  const heartShape = confetti.shapeFromPath({
-    path: "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z",
+    const frame = () => {
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 40,
+        origin: { x: 0, y: 0.7 },
+        colors: MONO_COLORS,
+        shapes: [heartShape, "circle"],
+        scalar: 1.1,
+        drift: 0.2,
+        gravity: 0.6,
+      });
+
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 40,
+        origin: { x: 1, y: 0.7 },
+        colors: MONO_COLORS,
+        shapes: [heartShape, "circle"],
+        scalar: 1.1,
+        drift: -0.2,
+        gravity: 0.6,
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      } else {
+        confettiRunning = false;
+      }
+    };
+
+    frame();
+
+    setTimeout(() => {
+      confetti({
+        particleCount: 70,
+        spread: 80,
+        origin: { x: 0.5, y: 0.5 },
+        colors: MONO_COLORS,
+        shapes: [heartShape, "circle"],
+        scalar: 1.3,
+        gravity: 0.5,
+      });
+    }, 500);
   });
-
-  const frame = () => {
-    confetti({
-      particleCount: 2,
-      angle: 60,
-      spread: 40,
-      origin: { x: 0, y: 0.7 },
-      colors: MONO_COLORS,
-      shapes: [heartShape, "circle"],
-      scalar: 1.1,
-      drift: 0.2,
-      gravity: 0.6,
-    });
-
-    confetti({
-      particleCount: 2,
-      angle: 120,
-      spread: 40,
-      origin: { x: 1, y: 0.7 },
-      colors: MONO_COLORS,
-      shapes: [heartShape, "circle"],
-      scalar: 1.1,
-      drift: -0.2,
-      gravity: 0.6,
-    });
-
-    if (Date.now() < end) {
-      requestAnimationFrame(frame);
-    } else {
-      confettiRunning = false;
-    }
-  };
-
-  frame();
-
-  setTimeout(() => {
-    confetti({
-      particleCount: 70,
-      spread: 80,
-      origin: { x: 0.5, y: 0.5 },
-      colors: MONO_COLORS,
-      shapes: [heartShape, "circle"],
-      scalar: 1.3,
-      gravity: 0.5,
-    });
-  }, 500);
 }
 
 export function Celebration() {
@@ -103,10 +114,7 @@ export function Celebration() {
   const handleFireMore = useCallback(() => {
     fireConfetti();
   }, []);
-  const handleFireMoreTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    handleFireMore();
-  }, [handleFireMore]);
+  const { onTouchStart: onFireTouchStart, onClick: onFireClick } = useFastTap(handleFireMore);
 
   return (
     <motion.div
@@ -141,19 +149,16 @@ export function Celebration() {
         />
       ))}
 
-      {/* Rising ivory hearts */}
+      {/* Rising ivory hearts — CSS animated for GPU perf */}
       {floatingHearts.map((h) => (
-        <motion.div
+        <div
           key={h.id}
-          className="absolute"
-          style={{ left: `${h.left}%` }}
-          initial={{ y: "100vh", opacity: 0 }}
-          animate={{ y: "-20vh", opacity: [0, 0.15, 0.15, 0] }}
-          transition={{
-            duration: 8 + Math.random() * 5,
-            delay: h.delay,
-            repeat: Infinity,
-            ease: "easeOut",
+          className="animate-rise-heart absolute"
+          style={{
+            left: `${h.left}%`,
+            animationDuration: `${8 + h.delay * 1.5}s`,
+            animationDelay: `${h.delay}s`,
+            willChange: "transform, opacity",
           }}
         >
           <Heart
@@ -161,7 +166,7 @@ export function Celebration() {
             style={{ color: "rgba(244, 241, 232, 0.12)" }}
             fill="currentColor"
           />
-        </motion.div>
+        </div>
       ))}
 
       {/* Main content */}
@@ -236,7 +241,8 @@ export function Celebration() {
         {/* More confetti button */}
         {isTouch ? (
           <button
-            onTouchStart={handleFireMoreTouchStart}
+            onTouchStart={onFireTouchStart}
+            onClick={onFireClick}
             className="cursor-pointer font-heading tracking-[0.2em] uppercase"
             style={{
               padding: "18px 56px",
@@ -244,7 +250,7 @@ export function Celebration() {
               color: "#0a0a0a",
               background: "#f4f1e8",
               border: "none",
-              touchAction: "none",
+              touchAction: "manipulation",
               WebkitTapHighlightColor: "transparent",
               WebkitTouchCallout: "none",
               WebkitUserSelect: "none",
@@ -255,7 +261,8 @@ export function Celebration() {
           </button>
         ) : (
           <motion.button
-            onClick={handleFireMore}
+            onTouchStart={onFireTouchStart}
+            onClick={onFireClick}
             className="cursor-pointer font-heading tracking-[0.2em] uppercase transition-all"
             style={{
               padding: "18px 56px",

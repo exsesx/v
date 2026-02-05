@@ -1,10 +1,12 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, lazy, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { EvadeButton } from "./EvadeButton";
-import { Celebration } from "./Celebration";
 import { FloatingPetals } from "./FloatingPetals";
 import { useIsTouchDevice } from "../hooks/useIsTouchDevice";
+import { useFastTap } from "../hooks/useFastTap";
+
+const Celebration = lazy(() => import("./Celebration").then(m => ({ default: m.Celebration })));
 
 type GameState = "question" | "celebration";
 
@@ -15,13 +17,14 @@ export function ValentineCard() {
   const handleYes = useCallback(() => {
     setState("celebration");
   }, []);
-  const handleYesTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    handleYes();
-  }, [handleYes]);
+  const { onTouchStart: onYesTouchStart, onClick: onYesClick } = useFastTap(handleYes);
 
   if (state === "celebration") {
-    return <Celebration />;
+    return (
+      <Suspense fallback={<div style={{ background: "#0a0a0a", position: "fixed", inset: 0 }} />}>
+        <Celebration />
+      </Suspense>
+    );
   }
 
   return (
@@ -29,17 +32,18 @@ export function ValentineCard() {
       className="weave-overlay relative flex w-screen items-center justify-center overflow-hidden"
       style={{ background: "#0a0a0a", minHeight: "100dvh" }}
     >
-      <FloatingPetals count={18} />
+      <FloatingPetals count={isTouch ? 8 : 18} />
 
-      {/* Subtle warm glow */}
+      {/* Subtle warm glow — uses wide gradient instead of blur for GPU perf */}
       <div
-        className="animate-gentle-pulse absolute h-96 w-96 rounded-full"
+        className="animate-gentle-pulse absolute rounded-full"
         style={{
           top: "50%",
           left: "50%",
+          width: "40rem",
+          height: "40rem",
           transform: "translate(-50%, -50%)",
-          background: "radial-gradient(circle, rgba(139, 115, 85, 0.06), transparent 70%)",
-          filter: "blur(80px)",
+          background: "radial-gradient(circle, rgba(139, 115, 85, 0.04), rgba(139, 115, 85, 0.01) 40%, transparent 70%)",
         }}
       />
 
@@ -139,7 +143,8 @@ export function ValentineCard() {
         >
           {isTouch ? (
             <button
-              onTouchStart={handleYesTouchStart}
+              onTouchStart={onYesTouchStart}
+              onClick={onYesClick}
               className="relative cursor-pointer font-heading tracking-[0.2em] uppercase"
               style={{
                 padding: "18px 56px",
@@ -148,7 +153,7 @@ export function ValentineCard() {
                 background: "#f4f1e8",
                 border: "none",
                 letterSpacing: "0.2em",
-                touchAction: "none",
+                touchAction: "manipulation",
                 WebkitTapHighlightColor: "transparent",
                 WebkitTouchCallout: "none",
                 WebkitUserSelect: "none",
@@ -159,7 +164,8 @@ export function ValentineCard() {
             </button>
           ) : (
             <motion.button
-              onClick={handleYes}
+              onTouchStart={onYesTouchStart}
+              onClick={onYesClick}
               className="relative cursor-pointer font-heading tracking-[0.2em] uppercase"
               style={{
                 padding: "18px 56px",

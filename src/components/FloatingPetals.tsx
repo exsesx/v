@@ -28,7 +28,10 @@ export const FloatingPetals = memo(function FloatingPetals({ count = 12 }: { cou
   }, [count]);
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <div
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      style={{ contain: "strict" }}
+    >
       {glyphs.map((g) => (
         <div
           key={g.id}
@@ -37,6 +40,8 @@ export const FloatingPetals = memo(function FloatingPetals({ count = 12 }: { cou
             left: `${g.left}%`,
             animationDuration: `${g.swayDuration}s`,
             animationDelay: `${g.delay}s`,
+            willChange: "transform",
+            contain: "layout style",
           }}
         >
           <div
@@ -47,6 +52,7 @@ export const FloatingPetals = memo(function FloatingPetals({ count = 12 }: { cou
               animationDuration: `${g.duration}s`,
               animationDelay: `${g.delay}s`,
               color: "#f4f1e8",
+              willChange: "transform, opacity",
             }}
           >
             {g.symbol}
