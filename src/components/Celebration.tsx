@@ -255,7 +255,7 @@ export function Celebration() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.1 }}
         >
-          Once More
+          Celebrate
         </motion.button>
       </div>
     </motion.div>
