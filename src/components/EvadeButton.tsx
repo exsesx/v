@@ -137,8 +137,6 @@ export function EvadeButton({ onGiveUp }: EvadeButtonProps) {
     }
   }, [tapCount, onGiveUp]);
 
-  if (isHidden) return null;
-
   const mobileLabel = isTouch ? MOBILE_PHRASES[Math.min(tapCount, MOBILE_PHRASES.length - 1)] : "No";
 
   const buttonStyle = {
@@ -154,13 +152,14 @@ export function EvadeButton({ onGiveUp }: EvadeButtonProps) {
     return (
       <button
         ref={buttonRef}
-        onTouchEnd={handleMobileTap}
+        onTouchEnd={!isHidden ? handleMobileTap : undefined}
         className="font-heading tracking-[0.2em] uppercase"
         style={{
           ...buttonStyle,
           touchAction: "manipulation",
           WebkitTapHighlightColor: "transparent",
-          opacity: tapCount >= MOBILE_PHRASES.length - 1 ? 0.3 : 0.7,
+          opacity: isHidden ? 0 : tapCount >= MOBILE_PHRASES.length - 1 ? 0.3 : 0.7,
+          pointerEvents: isHidden ? "none" : "auto",
         }}
       >
         {mobileLabel}
